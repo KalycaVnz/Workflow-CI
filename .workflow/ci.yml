@@ -13,6 +13,7 @@ permissions:
 
 env:
   EXPERIMENT_NAME: "CI Influencer Engagement"
+  IMAGE_NAME: "influencer-engagement-model"
 
 jobs:
   retrain:
@@ -73,3 +74,54 @@ jobs:
             git commit -m "CI: simpan artefak model run $RUN_ID"
             git push
           fi
+
+      - name: Build Docker Model
+        run: |
+          mlflow models build-docker \
+            --model-uri "runs:/$RUN_ID/model" \
+            --name "$IMAGE_NAME" \
+            --env-manager local
+          docker images "$IMAGE_NAME"
+
+      - name: Uji container model
+        run: |
+          docker run -d --name model-test -p 5001:8080 "$IMAGE_NAME"
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:5001/ping > /dev/null; then
+              echo "Container siap setelah ${i} percobaan"
+              break
+            fi
+            sleep 3
+          done
+          curl -sf http://localhost:5001/ping > /dev/null || { echo "Container tidak siap"; docker logs model-test; exit 1; }
+          RESPONSE=$(curl -sf -X POST http://localhost:5001/invocations \
+            -H "Content-Type: application/json" \
+            -d @artifacts/latest/model/serving_input_example.json)
+          echo "Respons: $RESPONSE"
+          echo "$RESPONSE" | python -c "import sys, json; p = json.load(sys.stdin)['predictions']; assert len(p) > 0; print('Jumlah prediksi:', len(p))"
+          docker stop model-test
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$DOCKERHUB_TOKEN" ]; then
+            echo "Secret DOCKERHUB_USERNAME atau DOCKERHUB_TOKEN belum diisi di Settings repo."
+            exit 1
+          fi
+          echo "$DOCKERHUB_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+
+      - name: Tag Docker Image
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          docker tag "$IMAGE_NAME" "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+          docker tag "$IMAGE_NAME" "$DOCKERHUB_USERNAME/$IMAGE_NAME:${RUN_ID:0:8}"
+
+      - name: Push Docker Image
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:${RUN_ID:0:8}"
