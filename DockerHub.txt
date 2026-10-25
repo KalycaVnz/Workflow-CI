@@ -1,0 +1,2 @@
+link repo docker hub
+[https://hub.docker.com/r/kalycavzz/influencer-engagement-model](https://hub.docker.com/r/kalycavzz/influencer-engagement-model)
