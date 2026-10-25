@@ -15,8 +15,8 @@ flavors:
     sklearn_version: 1.9.1
 mlflow_version: 2.19.0
 model_size_bytes: 67110
-model_uuid: 689cf8e1551c41daba5dee30ea67b9ba
-run_id: eaa09646d5f44b0d894a197b0a509546
+model_uuid: 72cb8a65714c4209afa0099002877fee
+run_id: b534ac2ba3f74348862dd7e40f009004
 saved_input_example_info:
   artifact_path: input_example.json
   pandas_orient: split
@@ -41,4 +41,4 @@ signature:
     "name": "campaign_duration_days", "required": true}]'
   outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
   params: null
-utc_time_created: '2026-10-25 06:39:42.115706'
+utc_time_created: '2026-10-25 20:53:24.119503'
