@@ -1,0 +1,44 @@
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.12.7
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.1
+mlflow_version: 2.19.0
+model_size_bytes: 67110
+model_uuid: 689cf8e1551c41daba5dee30ea67b9ba
+run_id: eaa09646d5f44b0d894a197b0a509546
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "platform_Instagram", "required": true}, {"type":
+    "double", "name": "platform_TikTok", "required": true}, {"type": "double", "name":
+    "platform_Twitter", "required": true}, {"type": "double", "name": "platform_YouTube",
+    "required": true}, {"type": "double", "name": "influencer_category_Beauty", "required":
+    true}, {"type": "double", "name": "influencer_category_Fashion", "required": true},
+    {"type": "double", "name": "influencer_category_Fitness", "required": true}, {"type":
+    "double", "name": "influencer_category_Food", "required": true}, {"type": "double",
+    "name": "influencer_category_Gaming", "required": true}, {"type": "double", "name":
+    "influencer_category_Tech", "required": true}, {"type": "double", "name": "influencer_category_Travel",
+    "required": true}, {"type": "double", "name": "campaign_type_Brand Awareness",
+    "required": true}, {"type": "double", "name": "campaign_type_Event Promotion",
+    "required": true}, {"type": "double", "name": "campaign_type_Giveaway", "required":
+    true}, {"type": "double", "name": "campaign_type_Product Launch", "required":
+    true}, {"type": "double", "name": "campaign_type_Seasonal Sale", "required": true},
+    {"type": "double", "name": "estimated_reach", "required": true}, {"type": "double",
+    "name": "campaign_duration_days", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+utc_time_created: '2026-10-25 06:39:42.115706'
