@@ -1,0 +1,13 @@
+name: influencer-engagement-ci
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_dir: {type: str, default: "influencer_marketing_roi_preprocessing"}
+      n_estimators: {type: int, default: 50}
+      max_depth: {type: int, default: 3}
+      min_samples_leaf: {type: int, default: 100}
+      max_features: {type: float, default: 0.5}
+    command: "python modelling.py --data_dir {data_dir} --n_estimators {n_estimators} --max_depth {max_depth} --min_samples_leaf {min_samples_leaf} --max_features {max_features}"

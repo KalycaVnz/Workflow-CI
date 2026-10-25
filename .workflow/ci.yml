@@ -1,0 +1,75 @@
+name: CI Retraining Model
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "MLProject/**"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  EXPERIMENT_NAME: "CI Influencer Engagement"
+
+jobs:
+  retrain:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12.7"
+
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          ls -la MLProject
+
+      - name: Install dependencies
+        run: python -m pip install mlflow==2.19.0 pandas==2.3.3 numpy==2.5.4 scikit-learn==1.9.1
+
+      - name: Set MLflow Tracking URI
+        run: echo "MLFLOW_TRACKING_URI=file://${GITHUB_WORKSPACE}/mlruns" >> "$GITHUB_ENV"
+
+      - name: Run mlflow project
+        run: mlflow run MLProject --env-manager=local --experiment-name "$EXPERIMENT_NAME"
+
+      - name: Get latest MLflow run_id
+        run: |
+          RUN_ID=$(python -c "import mlflow; r = mlflow.search_runs(experiment_names=['$EXPERIMENT_NAME'], order_by=['attributes.start_time DESC'], max_results=1); print(r.loc[0, 'run_id'])")
+          echo "RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+          echo "Run ID terbaru: $RUN_ID"
+
+      - name: Download artefak run terbaru
+        run: |
+          rm -rf artifacts/latest
+          mkdir -p artifacts/latest
+          python -c "import mlflow; mlflow.artifacts.download_artifacts(run_id='$RUN_ID', dst_path='artifacts/latest')"
+          echo "$RUN_ID" > artifacts/latest/run_id.txt
+          find artifacts/latest -type f | sort
+
+      - name: Upload artefak (GitHub Actions)
+        uses: actions/upload-artifact@v7
+        with:
+          name: model-artifacts
+          path: artifacts/latest/
+          if-no-files-found: error
+
+      - name: Simpan artefak ke repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts
+          if git diff --cached --quiet; then
+            echo "Tidak ada perubahan pada artefak."
+          else
+            git commit -m "CI: simpan artefak model run $RUN_ID"
+            git push
+          fi
